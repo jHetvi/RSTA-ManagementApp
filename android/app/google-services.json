@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "306213771084",
+    "project_id": "risingstartennisaccademy",
+    "storage_bucket": "risingstartennisaccademy.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:306213771084:android:4acd002a8b294a720021e9",
+        "android_client_info": {
+          "package_name": "com.example.rsta"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "306213771084-cpu4u58k77hq3kjhv2jpu18v2f4sql3m.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.rsta",
+            "certificate_hash": "08e68f2d3dc377493407e168f739b4efbb178006"
+          }
+        },
+        {
+          "client_id": "306213771084-4m6hue4kvtek6tplhma6pq4f9e0jt8n8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC2Hb9ecLwGVu6lsGSdxAGMVD3BMALEWNE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "306213771084-4m6hue4kvtek6tplhma6pq4f9e0jt8n8.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
