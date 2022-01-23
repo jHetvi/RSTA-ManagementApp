@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:rsta/Dashboard/DashboardScreen.dart';
+import 'package:rsta/FeesStructure/SearchBarDelegate.dart';
 import 'package:rsta/Global/Models/CustomColors.dart';
 import 'package:rsta/Global/Models/Gradients.dart';
 import 'package:rsta/Global/Models/Student.dart';
@@ -13,7 +14,7 @@ import 'package:rsta/Global/Widgets/TextKeyDynamicValueWidget.dart';
 import 'package:rsta/Global/Widgets/error_dialog.dart';
 import 'package:rsta/LogInScreen.dart/Widget/LoginHeaderCustomClipper.dart';
 import 'package:rsta/Services/authentication_functions.dart';
-import 'package:searchable_dropdown/searchable_dropdown.dart';
+// import 'package:searchable_dropdown/searchable_dropdown.dart';
 import 'package:velocity_x/velocity_x.dart';
 
 class FeesStructureScreen extends StatefulWidget {
@@ -53,6 +54,10 @@ class _FeesStructureScreenState extends State<FeesStructureScreen> {
     return true;
   }
 
+  // ADDED BY RAHI
+  // -------------- VARIABLES ---------------
+  Student selectedStudent;
+
   @override
   void initState() {
     _fromDateContoller = Timestamp.now();
@@ -74,7 +79,7 @@ class _FeesStructureScreenState extends State<FeesStructureScreen> {
         future: _authMethods.fetchAllUsers(),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
-            return getSearchableDropdown(snapshot.data, "Students");
+            return mySearchableDropdown(snapshot.data);
           } else if (snapshot.hasError) {
             return Text("${snapshot.error}");
           }
@@ -84,116 +89,208 @@ class _FeesStructureScreenState extends State<FeesStructureScreen> {
     );
   }
 
-  Widget getSearchableDropdown(List<Student> otherUsersList, mapKey) {
-    List<DropdownMenuItem> items = [];
-    for (int i = 0; i < otherUsersList.length; i++) {
-      items.add(new DropdownMenuItem(
-        child: new Container(
-            padding: EdgeInsets.all(20.0),
-            width: MediaQuery.of(context).size.width,
-            child: ListView(
-              physics: NeverScrollableScrollPhysics(),
-              scrollDirection: Axis.vertical,
-              shrinkWrap: true,
-              children: [
-                Row(
-                  children: [
-                    CircleAvatar(
-                      backgroundColor: pinkColor(),
-                      backgroundImage: otherUsersList[i].profileImgUrl == ""
-                          ? AssetImage("assets/images/avatar.jpg")
-                          : NetworkImage(otherUsersList[i].profileImgUrl),
-                      minRadius: 30.0,
-                    ),
-                    SizedBox(
-                      width: 10.0,
-                    ),
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          otherUsersList[i].name,
-                          style: TextStyle(
-                              fontSize: 23.0,
-                              color: Colors.black,
-                              letterSpacing: 0.2,
-                              fontWeight: FontWeight.w500),
-                        ),
-                        Text(
-                          otherUsersList[i].batch,
-                          style: TextStyle(
-                              color: Colors.grey,
-                              fontSize: 18,
-                              letterSpacing: 0.2,
-                              fontWeight: FontWeight.w300),
-                        ),
-                        Text(
-                          otherUsersList[i].time,
-                          style: TextStyle(
-                              color: Colors.grey,
-                              fontSize: 18,
-                              letterSpacing: 0.2,
-                              fontWeight: FontWeight.w300),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ],
-            )),
-        value: otherUsersList[i].studentId,
-      ));
-    }
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      child: new SearchableDropdown(
-        items: items,
-        value: selectedValueMap[mapKey],
-        isCaseSensitiveSearch: false,
-        hint: new Text('Search...',
-            style: TextStyle(color: Colors.grey, fontSize: 18.0)),
-        searchFn: (String keyword, items) {
-          // ignore: deprecated_member_use
-          List<int> ret = List<int>();
-          if (keyword != null && items != null && keyword.isNotEmpty) {
-            keyword.split(" ").forEach((k) {
-              int i = 0;
-              items.forEach((item) {
-                if (k.isNotEmpty &&
-                    (item.value
-                        .toString()
-                        .toLowerCase()
-                        .startsWith(k.toLowerCase()))) {
-                  ret.add(i);
-                }
-                i++;
-              });
-            });
+  // * WIDGET ADDED BY RAHI
+  Widget mySearchableDropdown(List<Student> otherUsersList) {
+    return InkWell(
+      onTap: () async {
+        // Search dialog and call back function for get selected student...
+        await showSearch(
+                context: context,
+                delegate: SearchBarDelegate(items: otherUsersList))
+            .then((value) {
+          if (value != null) {
+            selectedStudent = value;
+            _docController = selectedStudent.studentId;
+          } else {
+            print('Selected value was null');
           }
-          if (keyword.isEmpty) {
-            ret = Iterable<int>.generate(items.length).toList();
-          }
-          return (ret);
-        },
-        icon: Icon(
-          Icons.person_search,
-          color: Colors.white,
-          size: 24.0,
+        });
+      },
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+        height: selectedStudent == null ? 45 : 110,
+        width: double.infinity,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            selectedStudent == null
+                ? Padding(
+                    padding: const EdgeInsets.only(left: 12),
+                    child: Text(
+                      'Select Student..', // Change from Search...
+                      style: TextStyle(
+                        color: Colors.grey,
+                        fontSize: 16,
+                      ),
+                    ),
+                  )
+                : Row(
+                    children: [
+                      CircleAvatar(
+                        backgroundColor: pinkColor(),
+                        backgroundImage: selectedStudent.profileImgUrl == ""
+                            ? AssetImage("assets/images/avatar.jpg")
+                            : NetworkImage(selectedStudent.profileImgUrl),
+                        minRadius: 40.0,
+                      ),
+                      SizedBox(
+                        width: 10.0,
+                      ),
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            selectedStudent.name,
+                            style: TextStyle(
+                                fontSize: 23.0,
+                                color: Colors.black,
+                                letterSpacing: 0.2,
+                                fontWeight: FontWeight.w500),
+                          ),
+                          Text(
+                            selectedStudent.batch,
+                            style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: 18,
+                                letterSpacing: 0.2,
+                                fontWeight: FontWeight.w300),
+                          ),
+                          Text(
+                            selectedStudent.time,
+                            style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: 18,
+                                letterSpacing: 0.2,
+                                fontWeight: FontWeight.w300),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+            Padding(
+              padding: const EdgeInsets.only(right: 12),
+              child: Icon(
+                Icons.person_search,
+                color: Colors.white,
+              ),
+            ),
+          ],
         ),
-        underline: Padding(
-          padding: EdgeInsets.all(5),
-        ),
-        isExpanded: true,
-        onChanged: (value) {
-          setState(() {
-            selectedValueMap[mapKey] = value;
-            _docController = value.toString();
-          });
-        },
       ),
     );
   }
+
+  // Widget getSearchableDropdown(List<Student> otherUsersList, mapKey) {
+  //   List<DropdownMenuItem> items = [];
+  //   for (int i = 0; i < otherUsersList.length; i++) {
+  //     items.add(new DropdownMenuItem(
+  //       child: new Container(
+  //           padding: EdgeInsets.all(20.0),
+  //           width: MediaQuery.of(context).size.width,
+  //           child: ListView(
+  //             physics: NeverScrollableScrollPhysics(),
+  //             scrollDirection: Axis.vertical,
+  //             shrinkWrap: true,
+  //             children: [
+  //               Row(
+  //                 children: [
+  //                   CircleAvatar(
+  //                     backgroundColor: pinkColor(),
+  //                     backgroundImage: otherUsersList[i].profileImgUrl == ""
+  //                         ? AssetImage("assets/images/avatar.jpg")
+  //                         : NetworkImage(otherUsersList[i].profileImgUrl),
+  //                     minRadius: 30.0,
+  //                   ),
+  //                   SizedBox(
+  //                     width: 10.0,
+  //                   ),
+  //                   Column(
+  //                     mainAxisAlignment: MainAxisAlignment.center,
+  //                     crossAxisAlignment: CrossAxisAlignment.start,
+  //                     children: [
+  //                       Text(
+  //                         otherUsersList[i].name,
+  //                         style: TextStyle(
+  //                             fontSize: 23.0,
+  //                             color: Colors.black,
+  //                             letterSpacing: 0.2,
+  //                             fontWeight: FontWeight.w500),
+  //                       ),
+  //                       Text(
+  //                         otherUsersList[i].batch,
+  //                         style: TextStyle(
+  //                             color: Colors.grey,
+  //                             fontSize: 18,
+  //                             letterSpacing: 0.2,
+  //                             fontWeight: FontWeight.w300),
+  //                       ),
+  //                       Text(
+  //                         otherUsersList[i].time,
+  //                         style: TextStyle(
+  //                             color: Colors.grey,
+  //                             fontSize: 18,
+  //                             letterSpacing: 0.2,
+  //                             fontWeight: FontWeight.w300),
+  //                       ),
+  //                     ],
+  //                   ),
+  //                 ],
+  //               ),
+  //             ],
+  //           )),
+  //       value: otherUsersList[i].studentId,
+  //     ));
+  //   }
+  //   return Container(
+  //     padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+  //     // child: new SearchableDropdown(
+  //     //   items: items,
+  //     //   value: selectedValueMap[mapKey],
+  //     //   isCaseSensitiveSearch: false,
+  //     //   hint: new Text('Search...',
+  //     //       style: TextStyle(color: Colors.grey, fontSize: 18.0)),
+  //     //   searchFn: (String keyword, items) {
+  //     //     // ignore: deprecated_member_use
+  //     //     List<int> ret = List<int>();
+  //     //     if (keyword != null && items != null && keyword.isNotEmpty) {
+  //     //       keyword.split(" ").forEach((k) {
+  //     //         int i = 0;
+  //     //         items.forEach((item) {
+  //     //           if (k.isNotEmpty &&
+  //     //               (item.value
+  //     //                   .toString()
+  //     //                   .toLowerCase()
+  //     //                   .startsWith(k.toLowerCase()))) {
+  //     //             ret.add(i);
+  //     //           }
+  //     //           i++;
+  //     //         });
+  //     //       });
+  //     //     }
+  //     //     if (keyword.isEmpty) {
+  //     //       ret = Iterable<int>.generate(items.length).toList();
+  //     //     }
+  //     //     return (ret);
+  //     //   },
+  //     //   icon: Icon(
+  //     //     Icons.person_search,
+  //     //     color: Colors.white,
+  //     //     size: 24.0,
+  //     //   ),
+  //     //   underline: Padding(
+  //     //     padding: EdgeInsets.all(5),
+  //     //   ),
+  //     //   isExpanded: true,
+  //     //   onChanged: (value) {
+  //     //     setState(() {
+  //     //       selectedValueMap[mapKey] = value;
+  //     //       _docController = value.toString();
+  //     //     });
+  //     //   },
+  //     // ),
+  //   );
+  // }
 
   @override
   Widget build(BuildContext context) {
